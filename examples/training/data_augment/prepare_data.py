@@ -1,5 +1,3 @@
-# [WIP]
-
 import argparse
 import sys
 from pathlib import Path
@@ -97,7 +95,6 @@ def transform_and_save_dataset(input_file: Path, output_dir: str):
         sys.exit(1)
 
 
-# Main function to orchestrate the download and transformation process.
 def main():
     parser = argparse.ArgumentParser(
         description="Download and transform the guru-RL-92k math dataset."
@@ -117,14 +114,12 @@ def main():
 
     args = parser.parse_args()
 
-    # Step 1: Download the dataset
     downloaded_file = download_dataset(
         repo_id=DATASET_REPO,
         filename_in_repo=DATASET_FILE,
         local_dir=args.raw_data_dir
     )
 
-    # Step 2: Transform and save the dataset
     transform_and_save_dataset(
         input_file=downloaded_file,
         output_dir=args.processed_data_dir

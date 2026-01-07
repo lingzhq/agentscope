@@ -1,6 +1,6 @@
-# [WIP] Training Math Agent with Data-Augment Strategies
+# Training Math Agent with Data-Augment Strategies
 
-This example demonstrates how to use **AgentScope-Tuner** to enhance a math problem-solving agent task. We will focus on leveraging **Data-Centric** features, such as the `difficulty_based` task selector, to improve data utility training efficiency.
+This example demonstrates how to use **AgentScope-Tuner** to enhance a math problem-solving agent. We will focus on leveraging **Data-Centric** features, such as the `difficulty_based` task selector, to improve data utility and training efficiency.
 
 ## Task Setting
 
@@ -14,37 +14,37 @@ Each task is a question-answer pair from a math dataset. The agent's performance
 
 ### Objective of the Data-Centric Approach
 
-Training can be inefficient if tasks are too easy or too hard. This example addresses this by providing **selector** to dynamically select tasks using **data feedback**, which empowers users to explore and implement their own data-centric strategies, such as focusing on "productively challenging" samples, to maximize training efficiency.
+Training can be inefficient if tasks are too easy or too hard. This example addresses this by providing **selectors** to dynamically select tasks using **data feedback**. This empowers users to explore and implement their own data-centric strategies, such as focusing on "productively challenging" samples, to maximize training efficiency.
 
 ## Dataset Preparation
 
 To enable difficulty-based sampling, our training data needs to include features that represent the "difficulty" of each task.
 
-1.  **Base Dataset**: You can use any standard math problem dataset. A good example is math data in [LLM360/guru-RL-92k](https://huggingface.co/datasets/LLM360/guru-RL-92k), which comes pre-annotated with pass rates from different LLMs, serving as direct difficulty features.
-2.  **Build Your Own Features**: If you use your own dataset, you can generate these features by pre-running several models of varying capabilities and recording their pass rates (can be done in [Trinity](https://github.com/modelscope/Trinity-RFT/pull/440)). 
-3.  **Data Format**: The final dataset should be in HuggingFace format. In this example, data will be transfered to *GSM8K format* according to the [workflow](../react_agent/main.py). Besides the task content, it should include the difficulty feature columns you've defined (e.g., `qwen_7b_pass_rate`, `qwen_30b_pass_rate`).
-4. **Example data preparation**: We provide the data preparation script of this example, you can execute the script `python prepare_data.py`.
+1.  **Base Dataset**: You can use any standard math problem dataset. A good example is the math data in [LLM360/guru-RL-92k](https://huggingface.co/datasets/LLM360/guru-RL-92k), which comes pre-annotated with pass rates from different LLMs, serving as direct difficulty features.
+2.  **Build Your Own Features**: If you use your own dataset, you can generate these features by pre-running several models of varying capabilities and recording their pass rates. This can be done within the [Trinity](https://github.com/modelscope/Trinity-RFT/pull/440) framework.
+3.  **Data Format**: The final dataset should be in HuggingFace format. In this example, data will be transferred to *GSM8K format* according to the [workflow](../react_agent/main.py). Besides the task content, it must include the difficulty feature columns you've defined (e.g., `qwen_7b_pass_rate`, `qwen_30b_pass_rate`).
+4.  **Example Data Preparation**: We provide a script for this example. Simply execute `python prepare_data.py` to generate the required dataset.
 
 ## Code Implementation
 
 ### Agent Workflow & Judge Function
 
-This example follows the foundational [math-agent example](../react_agent/main.py), adopting its `run_react_agent` and `gsm8k_judge` as the agent workflow and judge function, respectively. For implementation details, please refer to the explanations and code in that example.
+This example follows the foundational [math-agent example](../react_agent/main.py), adopting its `run_react_agent` and `gsm8k_judge` as the `workflow_func` and `judge_func`, respectively. This highlights a key benefit: you can apply training strategies without altering your core agent logic.
 
-### Data-Centric Features
+### Design of Data-Centric Features
 
-Leveraging the powerful data processing capabilities of **`Trinity`**, **AgentScope-Tuner** provides interfaces for advanced operations such as data preprocessing, task selection strategies, and experience filtering. We introduce two core features below.
+Leveraging the powerful data processing capabilities of **`Trinity`**, **AgentScope-Tuner** provides interfaces for advanced operations like task selection and experience processing.
 
 #### Task Selector
 
-The `Task Selector` determines how samples are selected from a dataset. **AgentScope-Tuner** supports various built-in selectors, which can be easily configured in Python.
+The `Task Selector` determines how samples are selected from a dataset. It is configured within the `Dataset` object in your Python script.
 
 - **Built-in Selectors**:
   - `sequential`: Samples are selected in a fixed order.
   - `shuffle`: The dataset is shuffled at the beginning of each epoch.
   - `random`: Samples are randomly chosen with replacement for each batch.
   - `offline_easy2hard`: Samples are sorted by a predefined feature for curriculum learning.
-  - `difficulty_based` (Custom): An adaptive sampler based on task difficulty.
+  - `difficulty_based` (Customized): An adaptive sampler based on task difficulty.
 
 > For more details on `Task Selector`, including how to implement a custom selector based on feedback signals, please refer to Trinity's **[Selector Development Guide](https://github.com/modelscope/Trinity-RFT/blob/main/docs/sphinx_doc/source/tutorial/develop_selector.md)**.
 
@@ -52,71 +52,109 @@ The `Task Selector` determines how samples are selected from a dataset. **AgentS
 
 The `Data Processor` allows for real-time processing of **Task** and **Experience** during training, enabling operations like calculating feedback metrics, data augmentation, or filtering.
 
-For example, the ***difficulty_based*** selector requires a ***pass_rate_calculator*** operator to compute the average reward for each task in real time. This feedback is then used to update the selector's internal difficulty model.
+For example, the `difficulty_based` selector requires a `pass_rate_calculator` operator to compute the agent's success rate for each task. This feedback is then used to adjust the sampling strategy.
 
 > For more details on `Data Processor`, please refer to Trinity's **[Operator Development Guide](https://github.com/modelscope/Trinity-RFT/blob/main/docs/sphinx_doc/source/tutorial/develop_operator.md)**.
 
 
-## How to Run
+### Configuring the Experiments
 
+We demonstrate how to set up two experiments to compare the baseline `random` selector against the `difficulty_based` selector.
 
-### Data-Centric Configuration in Python
+**Experiment 1: Baseline with Random Selector**
 
-All data-related configurations, such as task selectors and evaluation setups, can be managed cleanly via the `Dataset` object. Detailed hyper-parameters configuration can be found in [BOTS](https://github.com/modelscope/Trinity-RFT/blob/main/examples/bots/README.md).
+In `main_random.py`, we configure the `task_selector` for random sampling.
 
 ```python
-# Baseline: random selector
+# In main_random.py
 train_dataset = Dataset(
     path="path/to/your/augmented/math_data",
     split="train",
     task_selector={'selector_type': 'random'},
 )
 
-# Difficulty-based selector
+tune(
+    workflow_func=run_react_agent,
+    judge_func=gsm8k_judge,
+    config_path="config_random.yaml",
+    train_dataset=train_dataset,
+    ...
+)
+```
+
+**Experiment 2: Advanced Training with Difficulty-Based Selector**
+
+In `main_difficulty.py`, we switch the selector to `difficulty_based` and provide initial feature keys.
+
+```python
+# In main_difficulty.py
 train_dataset = Dataset(
     path="path/to/your/augmented/math_data",
     split="train",
     task_selector={
         'selector_type': 'difficulty_based',
         'feature_keys': ["qwen_7b_pass_rate", "qwen_30b_pass_rate"],
-        'kwargs': {...},
+        'kwargs': {...}, # Hyper-parameters for the selection algorithm
     },
 )
 
-# (Optional) Evaluation setup
-eval_sets = Dataset(path="path/to/aime_eval_data")
+tune(
+    workflow_func=run_react_agent,
+    judge_func=gsm8k_judge,
+    config_path="config_difficulty.yaml",
+    train_dataset=train_dataset,
+    ...
+)
 ```
 
-For global, static configurations like `data_processor`, we recommend loading a base YAML file via `config_path`.
+> The `difficulty_based` selector in this example is an implementation of the ***BOTS*** algorithm. For details on its inner workings, please refer to the [***BOTS paper***](https://arxiv.org/abs/2510.26374) and its [***tutorials***](https://github.com/modelscope/Trinity-RFT/blob/main/examples/bots/README.md).
+
+The `config_difficulty.yaml` must enable the `pass_rate_calculator` to provide real-time feedback.
 
 ```yaml
-# file: config.yaml
-
-# Enable the pass_rate_calculator to provide feedback for the difficulty_based selector
+# Enable the calculator to provide feedback for the selector
 data_processor:
   experience_pipeline:
     operators:
       - name: pass_rate_calculator
-...
 ```
 
-### Startup Command
+## How to Run
 
-Finally, use `tune()` to train the workflow.
+### Step 1: Prerequisites
 
-```python
-if __name__ == "__main__":
-    config_path = "path/to/config.yaml"
-    train_dataset = Dataset(...)
-    eval_sets = [Dataset(...), Dataset(...)]
+Ensure you have installed AgentScope and Trinity-RFT with [the guidance](../react_agent/README.md).
 
-    tune(
-        workflow_func=run_react_agent,
-        judge_func=gsm8k_judge,
-        config_path=config_path,
-        train_dataset=train_dataset,
-        eval_datasets=eval_sets,
-    )
+### Step 2: Prepare the Dataset
+
+Run the data preparation script. Make sure to update the dataset paths in `main_random.py` and `main_difficulty.py` afterward.
+
+```bash
+python prepare_data.py
+```
+
+### Step 3: Start Ray Cluster
+
+For distributed training, start a Ray cluster.
+
+```bash
+# For single node
+ray start --head
+```
+
+### Step 4: Run Training
+
+You can now run either the baseline or the difficulty-based training experiment.
+
+- **To run the baseline experiment with a random selector:**
+
+```bash
+python main_random.py
+```
+
+- **To run the experiment with the difficulty-based selector:**
+```bash
+python main_difficulty.py
 ```
 
 ## Experimental Results 
