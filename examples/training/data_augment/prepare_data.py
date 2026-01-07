@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+"""
+Prepare math data from LLM360/guru-RL-92k
+Transfer to the GSM8K Format
+"""
+
 import argparse
 import sys
 from pathlib import Path

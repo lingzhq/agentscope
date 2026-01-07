@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Example of training a ReAct agent with Trinity-RFT."""
+"""Example of training a ReAct math-agent with random task selector."""
 from typing import Dict
 
 from agentscope.tuner import (
