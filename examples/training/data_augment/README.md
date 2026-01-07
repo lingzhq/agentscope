@@ -25,7 +25,7 @@ To enable difficulty-based sampling, our training data needs to include features
 3.  **Data Format**: The final dataset should be in HuggingFace format. In this example, data will be transfered to *GSM8K format* according to the [workflow](../react_agent/main.py). Besides the task content, it should include the difficulty feature columns you've defined (e.g., `qwen_7b_pass_rate`, `qwen_30b_pass_rate`).
 4. **Example data preparation**: We provide the data preparation script of this example, you can execute the script `python prepare_data.py`.
 
-## Implementation Overview
+## Code Implementation
 
 ### Agent Workflow & Judge Function
 
@@ -62,7 +62,7 @@ For example, the ***difficulty_based*** selector requires a ***pass_rate_calcula
 
 ### Data-Centric Configuration in Python
 
-All data-related configurations, such as task selectors and multi-evaluation setups, can be managed cleanly via the `Dataset` object. Detailed hyper-parameters configuration can be found in [BOTS](https://github.com/modelscope/Trinity-RFT/blob/main/examples/bots/README.md).
+All data-related configurations, such as task selectors and evaluation setups, can be managed cleanly via the `Dataset` object. Detailed hyper-parameters configuration can be found in [BOTS](https://github.com/modelscope/Trinity-RFT/blob/main/examples/bots/README.md).
 
 ```python
 # Baseline: random selector
@@ -90,18 +90,8 @@ train_dataset = Dataset(
     },
 )
 
-# (Optional) Multi-evaluation setup
-eval_sets = [
-    Dataset(
-        name="eval-aime",
-        path="path/to/aime_eval_data",
-        repeat_times=32,  # Increase sampling for this challenging eval set
-    ),
-    Dataset(
-        name="eval-math500",
-        path="path/to/math500_eval_data",
-    ),
-]
+# (Optional) Evaluation setup
+eval_sets = Dataset(path="path/to/aime_eval_data")
 ```
 
 For global, static configurations like `data_processor`, we recommend loading a base YAML file via `config_path`.

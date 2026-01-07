@@ -30,6 +30,8 @@ def to_trinity_config(
         TasksetConfig,
         load_config,
         InferenceModelConfig,
+        TaskSelectorConfig,
+        FormatConfig,
     )
 
     auto_config = False
@@ -56,6 +58,15 @@ def to_trinity_config(
                 split=train_dataset.split,
                 subset_name=train_dataset.name,
             )
+            if train_dataset.task_selector is not None:
+                config.buffer.explorer_input.taskset.task_selector = TaskSelectorConfig(
+                    **train_dataset.task_selector
+                )
+
+            if train_dataset.format is not None:
+                config.buffer.explorer_input.taskset.format = FormatConfig(
+                    **train_dataset.format
+                )
         else:
             config.buffer.explorer_input.taskset.path = train_dataset.path
             config.buffer.explorer_input.taskset.split = train_dataset.split

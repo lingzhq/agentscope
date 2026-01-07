@@ -2,50 +2,60 @@ project: Data-Augmentation
 name: Random-Selector
 checkpoint_root_dir: ./checkpoints
 
-algorithm:
-  algorithm_type: multi_step_grpo
-  repeat_times: 8  
-  optimizer:
-    lr: 1e-6  
-
-model:
-  model_path: "/path/to/Qwen3-0.6B"
-  max_model_len: 24576
-  max_response_tokens: 16384
-  temperature: 1.0
-
-cluster:
-  node_num: 1
-  gpu_per_node: 8
-
-buffer:
-  total_epochs: 1 
-  batch_size: 16
-
-
-explorer:
-  eval_interval: 20
-  runner_per_model: 16
-  max_timeout: 1200
-  rollout_model:
-    engine_num: 4
-    tensor_parallel_size: 1   
-    enable_openai_api: true
-    enable_history: true
-    enable_auto_tool_choice: true
-    tool_call_parser: hermes
-    reasoning_parser: deepseek_r1
-
 synchronizer:
   sync_style: dynamic_by_explorer
   sync_method: 'nccl'
   sync_interval: 4
-  sync_timeout: 1800
-
-trainer:
-  save_interval: 1000
-  use_dynamic_bsz: true
-  ulysses_sequence_parallel_size: 1
+  sync_timeout: 7200
 
 monitor:
   monitor_type: tensorboard
+
+# The config below has been set in python file.
+
+# algorithm:
+#   algorithm_type: multi_step_grpo
+#   repeat_times: 8  
+#   optimizer:
+#     lr: 1e-6  
+
+# model:
+#   model_path: "Qwen/Qwen3-0.6B"
+#   max_model_len: 24576
+#   max_response_tokens: 16384
+#   temperature: 1.0
+
+# cluster:
+#   node_num: 1
+#   gpu_per_node: 8
+
+# buffer:
+#   total_epochs: 1 
+#   batch_size: 16
+#   explorer_input:
+#     taskset:
+#       path: "path/to/your/augmented/math_data"
+#       split: "train"
+#       task_selector:
+#           selector_type: random
+#     eval_tasksets:
+#       path: "path/to/aime24_data"
+#       split: "test"
+
+# explorer:
+#   eval_interval: 20
+#   runner_per_model: 16
+#   max_timeout: 1200
+#   rollout_model:
+#     engine_num: 4
+#     tensor_parallel_size: 1   
+#     enable_openai_api: true
+#     enable_history: true
+#     enable_auto_tool_choice: true
+#     tool_call_parser: hermes
+#     reasoning_parser: deepseek_r1
+
+# trainer:
+#   save_interval: 100
+#   use_dynamic_bsz: true
+#   ulysses_sequence_parallel_size: 1
