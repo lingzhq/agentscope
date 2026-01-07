@@ -1,4 +1,4 @@
-# Training Math Agent with Data-Augment Strategies
+# [WIP] Training Math Agent with Data-Augment Strategies
 
 This example demonstrates how to use **AgentScope-Tuner** to enhance a math problem-solving agent task. We will focus on leveraging **Data-Centric** features, such as the `difficulty_based` task selector, to improve data utility training efficiency.
 
@@ -79,14 +79,7 @@ train_dataset = Dataset(
     task_selector={
         'selector_type': 'difficulty_based',
         'feature_keys': ["qwen_7b_pass_rate", "qwen_30b_pass_rate"],
-        'kwargs': {
-            'm': 8,
-            'lamb': 0.1,
-            'rho': 0.1,
-            'target_reward': 0.8,
-            'tau': 0,
-            'do_sample': True,
-        },
+        'kwargs': {...},
     },
 )
 
