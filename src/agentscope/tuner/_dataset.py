@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Dataset definition for tuner."""
 from itertools import islice
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, Field
 
 
@@ -32,6 +32,10 @@ class Dataset(BaseModel):
             "Total number of steps to run. "
             "If set, it will override total_epochs."
         ),
+        default=None,
+    )
+    task_selector: Optional[Dict[str, Any]] = Field(
+        description=("Configuration for the task selector."),
         default=None,
     )
 
