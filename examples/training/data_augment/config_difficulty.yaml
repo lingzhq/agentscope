@@ -7,6 +7,27 @@ data_processor:
     operators:
       - name: pass_rate_calculator # Calculate average reward and pass it back to selector
 
+buffer:
+  total_epochs: 1 # Total training epochs
+  explorer_input:
+    taskset:
+      path: "path/to/your/augmented/math_data" # Training data path
+      split: "train" # Training data split
+      task_selector:
+        selector_type: difficulty_based # Strategy of task selection
+        feature_keys: [ "qwen2.5_7b_pass_rate", "qwen3_30b_pass_rate" ] # Utilized pass_rate key
+        kwargs: # Hyperparameter from [BOTS](https://github.com/modelscope/Trinity-RFT/blob/main/examples/bots/README.md)
+          m: 8
+          lamb: 0.1
+          rho: 0.1
+          target_reward: 0.8
+          tau: 0
+          do_sample: true
+    eval_tasksets:
+    - name: "eval-aime24" # Evaluation data name
+      path: "path/to/aime24_data" # Evaluation data path
+      split: "test" # Evaluation data split
+
 synchronizer:
   sync_style: dynamic_by_explorer # Sync triggered dynamically by explorer
   sync_method: 'nccl'
@@ -33,27 +54,6 @@ model:
 cluster:
   node_num: 1 # Number of used nodes
   gpu_per_node: 8 # Number of GPUs every node
-
-buffer:
-  total_epochs: 1 # Total training epochs
-  batch_size: 16 # Batch size per explore step
-  explorer_input:
-    taskset:
-      path: "path/to/your/augmented/math_data" # Training data path
-      split: "train" # Training data split
-      task_selector:
-        selector_type: difficulty_based # Strategy of task selection
-        feature_keys: [ "qwen2.5_7b_pass_rate", "qwen3_30b_pass_rate" ] # Utilized pass_rate key
-        kwargs: # Hyperparameter from [BOTS](https://github.com/modelscope/Trinity-RFT/blob/main/examples/bots/README.md)
-          m: 8
-          lamb: 0.1
-          rho: 0.1
-          target_reward: 0.8
-          tau: 0
-          do_sample: true
-    eval_tasksets:
-      path: "path/to/aime24_data" # Evaluation data path
-      split: "test" # Evaluation data split
 
 explorer:
   eval_interval: 20 # Evaluation every N steps

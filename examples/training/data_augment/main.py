@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Example of training a ReAct math-agent with random task selector."""
+"""Example of training a ReAct math-agent with configurable task selector."""
 from typing import Dict
 
 from agentscope.tuner import (
@@ -101,18 +101,27 @@ async def gsm8k_judge(
 
 
 if __name__ == "__main__":
-    train_dataset = Dataset(
-        path="path/to/your/augmented/math_data",
-        split="train",
-        task_selector={
-            'selector_type': 'random',
-        },
+    parser = argparse.ArgumentParser(
+        description="Train math-agent with different task selectors"
     )
+    parser.add_argument(
+        "--config",
+        type=str,
+        default="config_random.yaml",
+        help="Path to the configuration YAML file",
+    )
+    args = parser.parse_args()
 
-    eval_dataset = Dataset(
-        path="path/to/aime24_data",
-        split='test',
-    )
+    # You can optionally configure them via Python Dataset objects, but we
+    # recommend using YAML for data-centric experiments.
+
+    # train_dataset = Dataset(
+    #     path="path/to/your/augmented/math_data",
+    #     split="train",
+    #     task_selector={
+    #         'selector_type': 'random',
+    #     },
+    # )
 
     tuner_model = TunerChatModel(
         model_path="Qwen/Qwen3-0.6B",
@@ -134,9 +143,7 @@ if __name__ == "__main__":
     tune(
         workflow_func=run_react_agent,
         judge_func=gsm8k_judge,
-        config_path="config_random.yaml",
-        train_dataset=train_dataset,
-        eval_dataset=eval_dataset,
+        config_path=args.config,
         model=tuner_model,
         algorithm=algorithm,
     )

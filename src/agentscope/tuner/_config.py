@@ -31,7 +31,6 @@ def to_trinity_config(
         load_config,
         InferenceModelConfig,
         TaskSelectorConfig,
-        FormatConfig,
     )
 
     auto_config = False
@@ -61,11 +60,6 @@ def to_trinity_config(
             if train_dataset.task_selector is not None:
                 config.buffer.explorer_input.taskset.task_selector = TaskSelectorConfig(
                     **train_dataset.task_selector
-                )
-
-            if train_dataset.format is not None:
-                config.buffer.explorer_input.taskset.format = FormatConfig(
-                    **train_dataset.format
                 )
         else:
             config.buffer.explorer_input.taskset.path = train_dataset.path
@@ -113,6 +107,8 @@ def to_trinity_config(
                 workflow_args=workflow_args,
             ),
         )
+    for eval_taskset in config.buffer.explorer_input.eval_tasksets:
+        eval_taskset.workflow_args = workflow_args
     if algorithm is not None:
         config.algorithm.algorithm_type = algorithm.algorithm_type
         config.algorithm.repeat_times = algorithm.group_size

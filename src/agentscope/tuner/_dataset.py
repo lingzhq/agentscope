@@ -38,10 +38,6 @@ class Dataset(BaseModel):
         description=("Configuration for the task selector."),
         default=None,
     )
-    format: Optional[Dict[str, str]] = Field(
-        description=("Dataset format mapping."),
-        default=None,
-    )
 
     def preview(self, n: int = 5) -> List:
         """Preview the dataset information.

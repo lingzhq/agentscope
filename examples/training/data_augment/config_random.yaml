@@ -2,6 +2,20 @@ project: "Data-Augmentation" # Project name
 name: "Random-Selector" # Experiment name
 checkpoint_root_dir: ${oc.env:TRINITY_CHECKPOINT_ROOT_DIR,./checkpoints} # Directory to save model checkpoints
 
+# Config of data-centric experiments
+buffer:
+  total_epochs: 1 # Total training epochs
+  explorer_input:
+    taskset:
+      path: "path/to/your/augmented/math_data" # Training data path
+      split: "train" # Training data split
+      task_selector:
+          selector_type: random # Strategy of task selection
+    eval_tasksets:
+    - name: "eval-aime24" # Evaluation data name
+      path: "path/to/aime24_data" # Evaluation data path
+      split: "test" # Evaluation data split
+
 synchronizer:
   sync_style: dynamic_by_explorer # Sync triggered dynamically by explorer
   sync_method: 'nccl'
@@ -28,19 +42,6 @@ model:
 cluster:
   node_num: 1 # Number of used nodes
   gpu_per_node: 8 # Number of GPUs every node
-
-buffer:
-  total_epochs: 1 # Total training epochs
-  batch_size: 16 # Batch size per explore step
-  explorer_input:
-    taskset:
-      path: "path/to/your/augmented/math_data" # Training data path
-      split: "train" # Training data split
-      task_selector:
-          selector_type: random # Strategy of task selection
-    eval_tasksets:
-      path: "path/to/aime24_data" # Evaluation data path
-      split: "test" # Evaluation data split
 
 explorer:
   eval_interval: 20 # Evaluation every N steps
